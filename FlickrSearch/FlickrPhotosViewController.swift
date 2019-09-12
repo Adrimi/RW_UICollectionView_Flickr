@@ -38,7 +38,6 @@ final class FlickrPhotosViewController: UICollectionViewController {
   private var selectedPhotos: [FlickrPhoto] = []
   private let shareLabel = UILabel()
   
-  
   // MARK: - Compound Properties
   var largePhotoIndexPath: IndexPath? {
     didSet {
@@ -130,9 +129,16 @@ final class FlickrPhotosViewController: UICollectionViewController {
     shareController.popoverPresentationController?.permittedArrowDirections = .any
     present(shareController, animated: true)
   }
+  
+  // MARK: - Lifecycle
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    collectionView.dragInteractionEnabled = true
+    collectionView.dragDelegate = self
+  }
 }
 
-// MARK: - Private
+// MARK: - Private Extension
 private extension FlickrPhotosViewController {
   func photo(for indexPath: IndexPath) -> FlickrPhoto {
     return searches[indexPath.section].searchResults[indexPath.row]
@@ -338,5 +344,17 @@ extension FlickrPhotosViewController {
       selectedPhotos.remove(at: index)
       updateSharedPhotoCountLabel()
     }
+  }
+}
+
+// MARK: -UICollectionViewDragDelegate
+extension FlickrPhotosViewController: UICollectionViewDragDelegate {
+  func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+    let flickrPhoto = photo(for: indexPath)
+    guard let thumbnail = flickrPhoto.thumbnail else { return [] }
+    
+    let item = NSItemProvider(object: thumbnail)
+    let dragItem = UIDragItem(itemProvider: item)
+    return [dragItem]
   }
 }
